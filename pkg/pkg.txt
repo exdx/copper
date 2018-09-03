@@ -1,0 +1,2 @@
+Library code used by external applications
+Other projects will import these libraries expecting them to work

@@ -1,0 +1,4 @@
+Main applications go here
+Each applicaiton should have its own subdirectory
+subdirectory should have a main function that invokes code from 
+/internal and /pkg
