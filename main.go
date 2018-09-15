@@ -2,13 +2,16 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"math"
 	"math/big"
+	"strings"
 
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+
+	exchange "github.com/copper/contracts"
 )
 
 func main() {
@@ -18,25 +21,48 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("we have a connection")
+	//Input address of 0x v1 contract and build event query
+	contractAddress := common.HexToAddress("0x12459C951127e0c374FF9105DdA097662A027093")
+	query := ethereum.FilterQuery{
+		FromBlock: big.NewInt(6338488),
+		ToBlock:   big.NewInt(6338504),
+		Addresses: []common.Address{
+			contractAddress,
+		},
+	}
 
-	account := common.HexToAddress("0x12459C951127e0c374FF9105DdA097662A027093") //0x Exchange contract
-	balance, err := client.BalanceAt(context.Background(), account, nil)
+	//Run query against ethereum client
+	logs, err := client.FilterLogs(context.Background(), query)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(balance) //
 
-	blockNumber := big.NewInt(6267848)
-	balanceAt, err := client.BalanceAt(context.Background(), account, blockNumber)
+	contractAbi, err := abi.JSON(strings.NewReader(string(exchange.ExchangeABI)))
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(balanceAt) // 25729324269165216042
 
-	fbalance := new(big.Float)
-	fbalance.SetString(balanceAt.String())
-	ethValue := new(big.Float).Quo(fbalance, big.NewFloat(math.Pow10(18)))
-	fmt.Println(ethValue) // 25.729324269165216041
+	for _, vLog := range logs {
+		fillEvent := struct {
+			indexedmaker           string //address
+			taker                  string //address
+			feeRecipient           string //address
+			makerToken             string //address
+			takerToken             string //address
+			filledMakerTokenAmount uint
+			filledTakerTokenAmount uint
+			paidMakerFee           uint
+			paidTakerFee           uint
+			indexedtokens          [32]byte
+			orderHash              [32]byte
+		}{}
+		err := contractAbi.Unpack(&fillEvent, "LogFill", vLog.Data)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// fmt.Println(string(fillEvent.indexedmaker))
+		// fmt.Println(string(fillEvent.taker))
+	}
 
 }
