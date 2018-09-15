@@ -44,17 +44,17 @@ func main() {
 
 	for _, vLog := range logs {
 		fillEvent := struct {
-			indexedmaker           string //address
-			taker                  string //address
-			feeRecipient           string //address
-			makerToken             string //address
-			takerToken             string //address
-			filledMakerTokenAmount uint
-			filledTakerTokenAmount uint
-			paidMakerFee           uint
-			paidTakerFee           uint
-			indexedtokens          [32]byte
-			orderHash              [32]byte
+			Indexedmaker           string //address
+			Taker                  string //address
+			FeeRecipient           string //address
+			MakerToken             string //address
+			TakerToken             string //address
+			FilledMakerTokenAmount uint
+			FilledTakerTokenAmount uint
+			PaidMakerFee           uint
+			PaidTakerFee           uint
+			Indexedtokens          [32]byte
+			OrderHash              [32]byte
 		}{}
 		err := contractAbi.Unpack(&fillEvent, "LogFill", vLog.Data)
 		if err != nil {
